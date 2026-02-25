@@ -3,234 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقديم Fancy Server</title>
+    <title>Fancy Application</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #9b59b6; /* لون بنفسجي Fancy */
-            --bg-color: #1a1a1a;
-            --card-bg: #252525;
-            --text-color: #ffffff;
-            --input-bg: #333333;
+            --primary: #8e44ad;
+            --secondary: #9b59b6;
+            --bg-dark: #121212;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        /* شاشة التحميل */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f0c29;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(142, 68, 173, 0.3);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .container {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 20px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #3a3a3a;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s forwards 0.5s;
         }
 
-        h2 {
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+        h1 {
             text-align: center;
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-weight: 700;
+            margin-bottom: 25px;
+            font-weight: 900;
+            background: linear-gradient(to right, #fff, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            padding: 15px 45px 15px 15px;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.5);
+            outline: none;
+            box-shadow: 0 0 10px rgba(142, 68, 173, 0.3);
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            font-size: 0.9em;
+            font-size: 0.9rem;
             color: #ccc;
+            font-weight: bold;
         }
 
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            background-color: var(--input-bg);
-            color: white;
-            font-family: inherit;
-            box-sizing: border-box; /* مهم جداً للمقاسات */
-            transition: 0.3s;
-            outline: none;
-        }
-
-        input:focus, textarea:focus {
-            border-color: var(--primary);
-            background-color: #3b3b3b;
-        }
-
-        /* تنسيق خاص لحقل التليكرام المقفل */
-        input[readonly] {
-            background-color: #2a2a2a;
-            color: #888;
-            cursor: not-allowed;
-            border: 1px dashed #555;
-        }
-
-        /* تنسيق حقل رفع الصور */
-        .file-upload {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-upload-label {
+        .photo-check {
             display: flex;
             align-items: center;
-            justify-content: center;
+            background: rgba(255,255,255,0.05);
             padding: 15px;
-            background-color: var(--input-bg);
             border-radius: 12px;
             cursor: pointer;
-            border: 2px dashed #555;
             transition: 0.3s;
         }
-
-        .file-upload-label:hover {
-            border-color: var(--primary);
-            background-color: #3b3b3b;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
+        
+        .photo-check:hover { background: rgba(255,255,255,0.1); }
+        .photo-check input { width: auto; margin-left: 10px; }
 
         button {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(45deg, var(--primary), #8e44ad);
+            padding: 16px;
+            background: linear-gradient(45deg, var(--primary), #5e2a84);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 1.1em;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:active {
-            transform: scale(0.98);
-        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(142, 68, 173, 0.6); }
+        button:active { transform: scale(0.98); }
 
-        /* رسالة تأكيد صغيرة */
-        .status {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9em;
-            display: none;
+        /* تأثير التموج للزر */
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
+        button:focus::after { width: 300px; height: 300px; }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Fancy Application 🚀</h2>
-    <form id="applyForm">
+    <div id="loader">
+        <div class="spinner"></div>
+        <h3 style="margin-top: 15px; color: #ccc;">Fancy Server</h3>
+    </div>
+
+    <div class="container">
+        <h1>🚀 طلب انضمام</h1>
         
-        <div class="form-group">
-            <label>حساب تليكرام (تلقائي)</label>
-            <input type="text" id="tg_username" readonly placeholder="جاري الجلب..." dir="ltr">
-        </div>
-
-        <div class="form-group">
-            <label>الاسم الحقيقي</label>
-            <input type="text" id="real_name" placeholder="أدخل اسمك" required>
-        </div>
-
-        <div class="form-group">
-            <label>اسمك في اللعبة (IGN)</label>
-            <input type="text" id="ign" placeholder="مثال: FancyPlayer" required dir="ltr">
-        </div>
-
-        <div class="form-group">
-            <label>العمر</label>
-            <input type="number" id="age" placeholder="كم عمرك؟" required>
-        </div>
-
-        <div class="form-group">
-            <label>خبراتك وسبب الانضمام</label>
-            <textarea id="experience" rows="4" placeholder="تحدث عن خبرتك في البناء أو الريدستون..." required></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>صور من بنائك (اختياري)</label>
-            <div class="file-upload">
-                <label for="build_photos" class="file-upload-label">
-                    📷 اضغط لاختيار الصور
-                </label>
-                <input type="file" id="build_photos" multiple accept="image/*">
+        <form id="applyForm">
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="real_name" placeholder="اسمك الحقيقي" required>
             </div>
-            <div id="file-count" style="text-align: center; font-size: 0.8em; color: #888; margin-top: 5px;"></div>
-        </div>
 
-        <button type="submit" id="submitBtn">إرسال التقديم</button>
-        <div class="status" id="statusMsg"></div>
-    </form>
-</div>
+            <div class="input-group">
+                <i class="fas fa-gamepad"></i>
+                <input type="text" id="ign" placeholder="اسمك في ماين كرافت" required dir="ltr" style="text-align: right;">
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-calendar-alt"></i>
+                <input type="number" id="age" placeholder="العمر" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-pencil-alt" style="top: 20px;"></i>
+                <textarea id="experience" rows="3" placeholder="تحدث عن خبرتك في اللعبة..." required></textarea>
+            </div>
+
+            <label class="photo-check">
+                <input type="checkbox" id="has_photos">
+                <span>📸 عندي صور بناء أريد إرفاقها</span>
+            </label>
+
+            <button type="submit" id="submitBtn">إرسال الطلب ✨</button>
+        </form>
+    </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-
-    // تفعيل التوسع الكامل للتطبيق وتغيير لون الهيدر
     tg.expand();
-    tg.MainButton.textColor = '#FFFFFF';
-    tg.MainButton.color = '#9b59b6';
 
-    // 1. تعبئة يوزر تليكرام تلقائياً
-    document.addEventListener("DOMContentLoaded", () => {
-        const user = tg.initDataUnsafe.user;
-        const userInput = document.getElementById('tg_username');
-        
-        if (user) {
-            // إذا كان عنده يوزر نيم نضعه، وإلا نضع الاسم الأول
-            userInput.value = user.username ? `@${user.username}` : user.first_name;
-        } else {
-            userInput.value = "غير معروف";
-        }
-    });
+    // إخفاء شاشة التحميل بعد ثانية
+    setTimeout(() => {
+        document.getElementById('loader').style.opacity = '0';
+        setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+    }, 1000);
 
-    // عرض عدد الملفات المختارة (تحسين بصري)
-    document.getElementById('build_photos').addEventListener('change', function() {
-        const count = this.files.length;
-        document.getElementById('file-count').innerText = count > 0 ? `تم اختيار ${count} صور` : "";
-    });
-
-    // 2. عند الضغط على إرسال
     document.getElementById('applyForm').addEventListener('submit', (e) => {
         e.preventDefault();
-
-        // جمع البيانات
+        
+        // تأثير اهتزاز بسيط للزر
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+        
         const data = {
-            tg_user: document.getElementById('tg_username').value,
             real_name: document.getElementById('real_name').value,
             ign: document.getElementById('ign').value,
             age: document.getElementById('age').value,
             experience: document.getElementById('experience').value,
-            // ملاحظة: الصور لا ترسل مباشرة عبر sendData بسبب حجمها
-            has_photos: document.getElementById('build_photos').files.length > 0 ? "نعم" : "لا"
+            has_photos: document.getElementById('has_photos').checked
         };
 
-        // إرسال البيانات للبوت
-        tg.sendData(JSON.stringify(data));
-
-        // إغلاق التطبيق بعد الإرسال (اختياري)
-        tg.close();
+        setTimeout(() => {
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }, 800); // تأخير بسيط لجمالية الحركة
     });
 </script>
 
