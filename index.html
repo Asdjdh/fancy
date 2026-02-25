@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقديم Fancy Server</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #9b59b6; /* لون بنفسجي Fancy */
+            --bg-color: #1a1a1a;
+            --card-bg: #252525;
+            --text-color: #ffffff;
+            --input-bg: #333333;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #3a3a3a;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background-color: var(--input-bg);
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box; /* مهم جداً للمقاسات */
+            transition: 0.3s;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background-color: #3b3b3b;
+        }
+
+        /* تنسيق خاص لحقل التليكرام المقفل */
+        input[readonly] {
+            background-color: #2a2a2a;
+            color: #888;
+            cursor: not-allowed;
+            border: 1px dashed #555;
+        }
+
+        /* تنسيق حقل رفع الصور */
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: var(--input-bg);
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px dashed #555;
+            transition: 0.3s;
+        }
+
+        .file-upload-label:hover {
+            border-color: var(--primary);
+            background-color: #3b3b3b;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, var(--primary), #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* رسالة تأكيد صغيرة */
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Fancy Application 🚀</h2>
+    <form id="applyForm">
+        
+        <div class="form-group">
+            <label>حساب تليكرام (تلقائي)</label>
+            <input type="text" id="tg_username" readonly placeholder="جاري الجلب..." dir="ltr">
+        </div>
+
+        <div class="form-group">
+            <label>الاسم الحقيقي</label>
+            <input type="text" id="real_name" placeholder="أدخل اسمك" required>
+        </div>
+
+        <div class="form-group">
+            <label>اسمك في اللعبة (IGN)</label>
+            <input type="text" id="ign" placeholder="مثال: FancyPlayer" required dir="ltr">
+        </div>
+
+        <div class="form-group">
+            <label>العمر</label>
+            <input type="number" id="age" placeholder="كم عمرك؟" required>
+        </div>
+
+        <div class="form-group">
+            <label>خبراتك وسبب الانضمام</label>
+            <textarea id="experience" rows="4" placeholder="تحدث عن خبرتك في البناء أو الريدستون..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>صور من بنائك (اختياري)</label>
+            <div class="file-upload">
+                <label for="build_photos" class="file-upload-label">
+                    📷 اضغط لاختيار الصور
+                </label>
+                <input type="file" id="build_photos" multiple accept="image/*">
+            </div>
+            <div id="file-count" style="text-align: center; font-size: 0.8em; color: #888; margin-top: 5px;"></div>
+        </div>
+
+        <button type="submit" id="submitBtn">إرسال التقديم</button>
+        <div class="status" id="statusMsg"></div>
+    </form>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+
+    // تفعيل التوسع الكامل للتطبيق وتغيير لون الهيدر
+    tg.expand();
+    tg.MainButton.textColor = '#FFFFFF';
+    tg.MainButton.color = '#9b59b6';
+
+    // 1. تعبئة يوزر تليكرام تلقائياً
+    document.addEventListener("DOMContentLoaded", () => {
+        const user = tg.initDataUnsafe.user;
+        const userInput = document.getElementById('tg_username');
+        
+        if (user) {
+            // إذا كان عنده يوزر نيم نضعه، وإلا نضع الاسم الأول
+            userInput.value = user.username ? `@${user.username}` : user.first_name;
+        } else {
+            userInput.value = "غير معروف";
+        }
+    });
+
+    // عرض عدد الملفات المختارة (تحسين بصري)
+    document.getElementById('build_photos').addEventListener('change', function() {
+        const count = this.files.length;
+        document.getElementById('file-count').innerText = count > 0 ? `تم اختيار ${count} صور` : "";
+    });
+
+    // 2. عند الضغط على إرسال
+    document.getElementById('applyForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // جمع البيانات
+        const data = {
+            tg_user: document.getElementById('tg_username').value,
+            real_name: document.getElementById('real_name').value,
+            ign: document.getElementById('ign').value,
+            age: document.getElementById('age').value,
+            experience: document.getElementById('experience').value,
+            // ملاحظة: الصور لا ترسل مباشرة عبر sendData بسبب حجمها
+            has_photos: document.getElementById('build_photos').files.length > 0 ? "نعم" : "لا"
+        };
+
+        // إرسال البيانات للبوت
+        tg.sendData(JSON.stringify(data));
+
+        // إغلاق التطبيق بعد الإرسال (اختياري)
+        tg.close();
+    });
+</script>
+
+</body>
+</html>
